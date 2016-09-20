@@ -15,6 +15,6 @@ Limitations are:
 
 ```bash
 cd superbritebot
-pip3 install < requirements.txt
+pip3 install -r requirements.txt
 python3 superbritebot.py $EVENT_URL $FIRST_NAME $LASTNAME $EMAIL
 ```
