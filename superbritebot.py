@@ -6,7 +6,9 @@
 import argparse
 import re
 import json
+from sys import exit, stderr
 from collections import defaultdict
+from time import time, sleep
 from datetime import datetime
 
 from lxml import html
@@ -79,6 +81,8 @@ def main():
     parser.add_argument("first_name", help="Your first name")
     parser.add_argument("last_name", help="Your last name")
     parser.add_argument("email", help="Your email")
+    parser.add_argument("time", help="When does the script should submit an" \
+                                     "order. Accepts 24-hour notation (16:00)")
     args = parser.parse_args()
 
     user_info = defaultdict(str)
@@ -86,7 +90,30 @@ def main():
     user_info["last_name"] = args.last_name
     user_info["email"] = args.email
 
-    get_ticket(args.event_page_url, user_info)
+    if args.time:
+        try:
+            now = datetime.now()
+            target_time_str = "%s %s" % (now.strftime("%Y-%m-%d"), args.time)
+            target_date = datetime.strptime(target_time_str, "%Y-%m-%d %H:%M")
+            target_time = target_date.timestamp()
+            assert target_date > now
+        except Exception:
+            print("Error parsing time argument." \
+                  "Make sure to use 24-hour notation and that the time is set" \
+                  "in the future", file=stderr)
+            exit(0)
+
+        print("Waiting until %s..." % args.time)
+
+        # Sleep until target time minus 4 seconds
+        sleep_time = target_time - time() - 4
+        sleep(sleep_time)
+
+        while True:
+            if time() >= target_time:
+                break
+
+        get_ticket(args.event_page_url, user_info)
 
 
 if __name__ == "__main__":
